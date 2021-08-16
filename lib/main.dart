@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_scraper_demo/data_model.dart';
+
+import 'callback_price_model.dart';
 
 void main() {
   runApp(MyApp());
@@ -42,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     // getUrlData();
+    queryProductDetail();
   }
 
   getUrlData() async {
@@ -104,6 +109,42 @@ class _MyHomePageState extends State<MyHomePage> {
     print(newList);
     productList.addAll(newList);
     setState(() {});
+  }
+
+  queryProductDetail() async {
+    var url = 'https://item.jd.com/100009077475.html';
+
+    final skuId = url.split('/')[3].split('.')[0];
+
+    print(url.split('/')[3].split('.')[0]);
+
+    if (url.isEmpty) return;
+
+    final response = await http.get(Uri.parse(url));
+
+    final body = response.body;
+
+    final html = parse(body);
+
+    final result = html.querySelector('.p-price');
+
+    final skuList = result!
+        .querySelector('.price')!
+        .attributes['class']!
+        .split(' ')[1]
+        .split('-');
+    print(skuList);
+    print('${skuList[0]}_${skuList[2]}');
+
+    // final res = await http.get(Uri.parse(
+    //     'https://p.3.cn/prices/mgets?skuIds=${skuList[0]}_${skuList[2]}'));
+
+    final res = await http
+        .get(Uri.parse('https://p.3.cn/prices/mgets?skuIds=J_$skuId'));
+
+    print(res.body.runtimeType);
+
+    print(CallbackPriceModel.fromJson(json.decode(res.body)[0]).p);
   }
 
   void _incrementCounter() {
