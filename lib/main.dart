@@ -67,47 +67,66 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // print(imgList);
 
-    final imageList = html.querySelectorAll('.p-img');
-    final priceList = html.querySelectorAll('.p-price');
-    final nameList = html.querySelectorAll('.p-name');
+    final liList = html.querySelectorAll('.gl-item');
 
-    for (var item in nameList) {
-      print("商品名称：" + item.querySelector('a')!.querySelector('em')!.text);
+    print(liList.length);
 
-      titleList.add(item.querySelector('a')!.querySelector('em')!.text);
-    }
+    for (var item in liList) {
+      Map<String, String> map = {};
 
-    for (var item in priceList) {
-      print('商品价格：${item.text.trim()}');
-      totalPriceList.add(item.text.trim());
-    }
+      DataModel dataModel = DataModel();
 
-    for (var item in imageList) {
-      var title = item.querySelector('a')!.attributes['title'];
-      print(title);
-      var imgUrl = item
+      print('商品价格：' +
+          item
+              .querySelector('.gl-i-wrap')!
+              .querySelector('.p-price')!
+              .text
+              .trim());
+
+      final price = item
+          .querySelector('.gl-i-wrap')!
+          .querySelector('.p-price')!
+          .text
+          .trim();
+
+      map.putIfAbsent('price', () => price);
+      dataModel.price = price;
+      final attrList = item
+          .querySelector('.gl-i-wrap')!
+          .querySelector('.p-name')!
+          .querySelectorAll('.attr');
+
+      var name = '';
+      attrList.forEach((element) {
+        name += element.text;
+      });
+      print('商品名称：$name');
+      map.putIfAbsent('name', () => name);
+      dataModel.name = name;
+      print(
+        '商品图片：' +
+            'https:' +
+            item
+                .querySelector('.gl-i-wrap')!
+                .querySelector('.p-img')!
+                .querySelector('a')!
+                .querySelector('img')!
+                .attributes['data-lazy-img']
+                .toString(),
+      );
+
+      final image = item
+          .querySelector('.gl-i-wrap')!
+          .querySelector('.p-img')!
           .querySelector('a')!
           .querySelector('img')!
-          .attributes['data-lazy-img'];
-      print(imgUrl);
+          .attributes['data-lazy-img']
+          .toString();
 
-      imgList.add('https:$imgUrl');
+      map.putIfAbsent('image', () => image);
+      dataModel.image = 'https:$image';
+      productList.add(dataModel);
     }
-
-    final newList = imgList
-        .asMap()
-        .map(
-          (key, value) => MapEntry(
-            key,
-            DataModel(
-                name: titleList[key], image: value, price: totalPriceList[key]),
-          ),
-        )
-        .values
-        .toList();
-
-    print(newList);
-    productList.addAll(newList);
     setState(() {});
   }
 
@@ -182,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           productList.isNotEmpty
               ? Expanded(
-                  child: ListView.builder(
+                  child: GridView.builder(
                     itemCount: productList.length,
                     itemBuilder: (_, index) => Container(
                       padding: EdgeInsets.all(8),
@@ -199,13 +218,18 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Row(
                         children: [
                           Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1,
-                                  color: Color(0XFFEEEEEE),
-                                ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                width: 1,
+                                color: Color(0XFFEEEEEE),
                               ),
-                              child: Image.network(productList[index].image!)),
+                            ),
+                            child: Image.network(
+                              productList[index].image!,
+                              // width: 120,
+                              // height: 120,
+                            ),
+                          ),
                           SizedBox(
                             width: 10,
                           ),
@@ -234,6 +258,13 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 5 / 2,
                     ),
                   ),
                 )
